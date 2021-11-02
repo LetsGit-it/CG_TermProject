@@ -200,21 +200,23 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
   };
     
   //마우스로 1인칭 고정하기, 이해는 잘못함...
-  var instructions = document.querySelector("#instructions");
+  var startBtn = document.getElementById("start");
   var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
   if ( havePointerLock ) {
     var element = document.body;
     var pointerlockchange = function ( event ) {
       if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
         controls.enabled = true;
-        instructions.style.display = 'none';
+        document.getElementById("startId").style.display = "none"; //시작매뉴 사라짐
+        // document.getElementById("endId").style.display = "block"; //끝화면 시작
       } else {
         controls.enabled = false;
-        instructions.style.display = '-webkit-box';
+        // instructions.style.display = '-webkit-box';
       }
     };
     var pointerlockerror = function ( event ) {
-      instructions.style.display = 'none';
+      document.getElementById("startId").style.display = "none"; //시작매뉴 사라짐
+      // document.getElementById("endId").style.display = "block"; //끝매뉴 시작
     };
   
     document.addEventListener( 'pointerlockchange', pointerlockchange, false );
@@ -224,7 +226,8 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
     document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
     document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
   
-    instructions.addEventListener( 'click', function ( event ) {
+    //start 버튼 누르면 시작
+    startBtn.addEventListener( 'click', function ( event ) {
       element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
       if ( /Firefox/i.test( navigator.userAgent ) ) {
         var fullscreenchange = function ( event ) {
@@ -243,12 +246,16 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
       }
     }, false );
   } else {
-    instructions.innerHTML = 'Your browser not suported PointerLock';
+    
   }
   
   //여기부터 물체 생성 및 맵 관련 코드들////////////////////
-  var camera, scene, renderer, controls, raycaster, arrow, world,gun,clock;
+  var camera, scene, renderer, controls, raycaster, arrow, world,gun,clock,skyboxGeo, skybox;
   var boxes=[];
+  var skyboxImageIndex = 0;
+  var skyboxImage = ["space", "mountain", "water", "lava", "mars", "temp1", "temp2"];
+  var levelIndex = 0;
+  var level = ["EASY", "NORMAL", "HARD"];
   init();
   animate();
 
@@ -311,12 +318,19 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
   
     var floorGeometry = new THREE.PlaneBufferGeometry( 2000, 2000, 100, 100 );
     var floorMaterial = new THREE.MeshLambertMaterial();
-    floorMaterial.color.setHSL( 0.095, 1, 0.75 );
+    floorMaterial.color.setHSL( 0, 0, 0.3 );
   
     var floor = new THREE.Mesh( floorGeometry, floorMaterial );
     floor.rotation.x = - Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
+
+      // 배경 skybox 매트릭스 생성 및 scene에 추가함
+      const materialArray = createMaterialArray(skyboxImage[skyboxImageIndex]);
+
+      skyboxGeo = new THREE.BoxGeometry(2000, 1000, 2000);
+      skybox = new THREE.Mesh(skyboxGeo, materialArray);
+      scene.add(skybox);
   
   
 		
@@ -377,7 +391,36 @@ mtlLoader.load("models/uziGold.mtl", function(materials){
     scene.add( world );
     animate();
   }
-  
+  function createPathStrings(filename) {
+    const basePath = `./background/${filename}/`;
+    const baseFilename = basePath + filename;
+    const fileType = filename == "space" ? ".png" : filename == "temp2" ? ".bmp" : ".jpg";
+    const sides = ["ft", "bk", "up", "dn", "rt", "lf"];
+    const pathStings = sides.map((side) => {
+        return baseFilename + "_" + side + fileType;
+    });
+
+    return pathStings;
+}
+
+function createMaterialArray(filename) {
+    const skyboxImagepaths = createPathStrings(filename);
+    const materialArray = skyboxImagepaths.map((image) => {
+        let texture = new THREE.TextureLoader().load(image);
+
+        return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+    });
+    return materialArray;
+}
+
+function switchSkyBox(skyboxName) {
+    scene.remove(skybox);
+    skyboxImage[skyboxImageIndex] = skyboxName;
+    const materialArray = createMaterialArray(skyboxImage[skyboxImageIndex]);
+
+    skybox = new THREE.Mesh(skyboxGeo, materialArray);
+    scene.add(skybox);
+}
   //화면 맞춤 함수
   function onWindowResize() {
   
@@ -463,95 +506,95 @@ mtlLoader.load("models/uziGold.mtl", function(materials){
 }
 
 
-  //총알 파편튀는 코드인데 일단 제외했음
-  var particles = new Array();
+  // //총알 파편튀는 코드인데 일단 제외했음
+  // var particles = new Array();
   
-  //파편 튀는 함수
-  function makeParticles(intersectPosition){
-    var totalParticles = 80;
+  // //파편 튀는 함수
+  // function makeParticles(intersectPosition){
+  //   var totalParticles = 80;
     
-    var pointsGeometry = new THREE.BufferGeometry();
-    pointsGeometry.oldvertices = [];//파편 포인트
-    pointsGeometry.vertices=[];
-    var colors = [];
-    for (var i = 0; i < totalParticles; i++) {
-      var position = randomPosition(Math.random());
-      var vertex = new THREE.Vector3(position[0], position[1] , position[2]);
-      pointsGeometry.oldvertices.push([0,0,0]);
-      pointsGeometry.vertices.push(vertex);
+  //   var pointsGeometry = new THREE.BufferGeometry();
+  //   pointsGeometry.oldvertices = [];//파편 포인트
+  //   pointsGeometry.vertices=[];
+  //   var colors = [];
+  //   for (var i = 0; i < totalParticles; i++) {
+  //     var position = randomPosition(Math.random());
+  //     var vertex = new THREE.Vector3(position[0], position[1] , position[2]);
+  //     pointsGeometry.oldvertices.push([0,0,0]);
+  //     pointsGeometry.vertices.push(vertex);
   
-      var color = new THREE.Color(Math.random() * 0xffffff);
-      colors.push(color);
-    }
-    pointsGeometry.colors = colors;
+  //     var color = new THREE.Color(Math.random() * 0xffffff);
+  //     colors.push(color);
+  //   }
+  //   pointsGeometry.colors = colors;
   
-    var pointsMaterial = new THREE.PointsMaterial({
-      size: .8,
-      sizeAttenuation: true,
-      depthWrite: true,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      vertexColors: THREE.VertexColors
-    });
+  //   var pointsMaterial = new THREE.PointsMaterial({
+  //     size: .8,
+  //     sizeAttenuation: true,
+  //     depthWrite: true,
+  //     blending: THREE.AdditiveBlending,
+  //     transparent: true,
+  //     vertexColors: THREE.VertexColors
+  //   });
   
-    var points = new THREE.Points(pointsGeometry, pointsMaterial);
+  //   var points = new THREE.Points(pointsGeometry, pointsMaterial);
   
-    points.prototype = Object.create(THREE.Points.prototype);
-    points.position.x = intersectPosition.x;
-    points.position.y = intersectPosition.y;
-    points.position.z = intersectPosition.z;
-    points.updateMatrix();
-    points.matrixAutoUpdate = false;
+  //   points.prototype = Object.create(THREE.Points.prototype);
+  //   points.position.x = intersectPosition.x;
+  //   points.position.y = intersectPosition.y;
+  //   points.position.z = intersectPosition.z;
+  //   points.updateMatrix();
+  //   points.matrixAutoUpdate = false;
   
-    points.prototype.constructor = points;
-    points.prototype.update = function(index) {
-      var pCount = this.constructor.geometry.vertices.length;
-        var positionYSum = 0;
-      while(pCount--) {
-        var position = this.constructor.geometry.vertices[pCount];
-        var oldPosition = this.constructor.geometry.oldvertices[pCount];
+  //   points.prototype.constructor = points;
+  //   points.prototype.update = function(index) {
+  //     var pCount = this.constructor.geometry.vertices.length;
+  //       var positionYSum = 0;
+  //     while(pCount--) {
+  //       var position = this.constructor.geometry.vertices[pCount];
+  //       var oldPosition = this.constructor.geometry.oldvertices[pCount];
   
-        var velocity = {
-          x: (position.x - oldPosition[0] ),
-          y: (position.y - oldPosition[1] ),
-          z: (position.z - oldPosition[2] )				
-        }
+  //       var velocity = {
+  //         x: (position.x - oldPosition[0] ),
+  //         y: (position.y - oldPosition[1] ),
+  //         z: (position.z - oldPosition[2] )				
+  //       }
   
-        var oldPositionX = position.x;
-        var oldPositionY = position.y;
-        var oldPositionZ = position.z;
+  //       var oldPositionX = position.x;
+  //       var oldPositionY = position.y;
+  //       var oldPositionZ = position.z;
   
-        position.y -= .03; // gravity
+  //       position.y -= .03; // gravity
   
-        position.x += velocity.x;
-        position.y += velocity.y;
-        position.z += velocity.z;
+  //       position.x += velocity.x;
+  //       position.y += velocity.y;
+  //       position.z += velocity.z;
         
-        var wordlPosition = this.constructor.position.y + position.y;
+  //       var wordlPosition = this.constructor.position.y + position.y;
         
-        if (wordlPosition <= 0) {
-          //particle touched the ground
-          oldPositionY = position.y;
-          position.y = oldPositionY - (velocity.y * .3);
+  //       if (wordlPosition <= 0) {
+  //         //particle touched the ground
+  //         oldPositionY = position.y;
+  //         position.y = oldPositionY - (velocity.y * .3);
           
-              positionYSum += 1;
-        }
+  //             positionYSum += 1;
+  //       }
   
-        this.constructor.geometry.oldvertices[pCount] = [oldPositionX, oldPositionY, oldPositionZ];
-      }
+  //       this.constructor.geometry.oldvertices[pCount] = [oldPositionX, oldPositionY, oldPositionZ];
+  //     }
       
-      pointsGeometry.verticesNeedUpdate = true;
+  //     pointsGeometry.verticesNeedUpdate = true;
       
-      if (positionYSum >= totalParticles) {
-        particles.splice(index, 1);
-          scene.remove(this.constructor);
-        console.log('particle removed');
-      }
+  //     if (positionYSum >= totalParticles) {
+  //       particles.splice(index, 1);
+  //         scene.remove(this.constructor);
+  //       console.log('particle removed');
+  //     }
   
-    };
-    particles.push( points );
-    scene.add(points);
-  }
+  //   };
+  //   particles.push( points );
+  //   scene.add(points);
+  // }
 
   //랜덤으로 xyz 설정하는 함수
   
@@ -571,6 +614,57 @@ mtlLoader.load("models/uziGold.mtl", function(materials){
     return [x, y, z];
   }
   
+  //추가한부분
+  var mapLeftBtn;
+  var mapRightBtn;
+  var levelUpBtn;
+  var levelDownBtn;
+  var startBtn;
+  
+  var restartBtn;
+  var gobackBtn;
+  
+  var mapContent;
+  var levelContent;
+  
+  var score;
+  var resultContent;
+
+  mapLeftBtn = document.getElementById("mapLeft");
+  mapRightBtn = document.getElementById("mapRight");
+  levelUpBtn = document.getElementById("levelUp");
+  levelDownBtn = document.getElementById("levelDown");
+  mapContent = document.getElementById("map");
+  levelContent = document.getElementById("level");
+
+  restartBtn = document.getElementById("reStart");
+  gobackBtn = document.getElementById("goBack");
+  resultContent = document.getElementById("resultContent");
+
+  mapLeftBtn.addEventListener("click", function () {
+      skyboxImageIndex += 6;
+      skyboxImageIndex = skyboxImageIndex % 7;
+      mapContent.textContent = skyboxImage[skyboxImageIndex];
+      switchSkyBox(skyboxImage[skyboxImageIndex]);
+  });
+  mapRightBtn.addEventListener("click", function () {
+      skyboxImageIndex += 1;
+      skyboxImageIndex = skyboxImageIndex % 7;
+      mapContent.textContent = skyboxImage[skyboxImageIndex];
+      switchSkyBox(skyboxImage[skyboxImageIndex]);
+  });
+  levelUpBtn.addEventListener("click", function () {
+      levelIndex += 1;
+      levelIndex = levelIndex % 3;
+      levelContent.textContent = level[levelIndex];
+  });
+  levelDownBtn.addEventListener("click", function () {
+      levelIndex += 2;
+      levelIndex = levelIndex % 3;
+      levelContent.textContent = level[levelIndex];
+  });
+  
+
 
   //GUI 부분, 옆에 마우스 감도랑 사람 키, 점프 속도 설정하는 부분
   var Controlers = function() {
