@@ -135,6 +135,21 @@ body {
     font-size: 30px;
 }
 
+/* timer */
+#timer{
+    position: fixed;
+    left: 0%;
+    top: 0%;
+    background-color: rgb(89, 255, 47);
+    text-align: left;
+
+    display: block;
+}
+
+#timeObject{
+    font-size:40px;
+}
+
 /* game start page */
 #instructions {
     width: 100%;

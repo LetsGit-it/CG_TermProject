@@ -140,7 +140,7 @@ window.onload = function init() {
         //시작 설정 보여주는 것
         alert("Start!\nMap : " + mapContent.innerText + "\nLevel : " + levelContent.innerText);
 
-        gameStart();
+        gameStart(levelIndex);
         return;
     });
 
