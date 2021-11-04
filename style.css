@@ -1,0 +1,174 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background: #bdc3c7;
+}
+#loading {
+    position: fixed;
+    font-size: 40px;
+    z-index: -1;
+    left: 28%;
+    top: 15%;
+    color: #444;
+    text-align: center;
+}
+
+.buttons {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+}
+.buttons button {
+    margin-bottom: 6px;
+    width: 120px;
+    font-size: 14px;
+    outline: none;
+    background: #333;
+    color: #ddd;
+    border: none;
+    text-transform: uppercase;
+    opacity: 0.5;
+}
+.buttons button:hover {
+    background: #222;
+    color: #eee;
+}
+.buttons button:active {
+    background: #111;
+    color: #fff;
+}
+
+#autoRotate {
+    margin-top: 20px;
+}
+
+.drag {
+    color: #ccc;
+    font-size: 11px;
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    opacity: 0.7;
+}
+
+/* start menu */
+.start_menu {
+    width: 100%;
+    position: fixed;
+    text-align: center;
+    margin: 0 auto;
+    top: 40%;
+}
+.setting {
+    margin-bottom: 20px;
+}
+.map-btn,
+.level-btn {
+    width: 400px;
+    height: 60px;
+    background-color: #ffffff;
+    display: inline-block;
+    outline: none;
+    border: none;
+    opacity: 1;
+    line-height: 60px;
+    font-size: 60px;
+    text-transform: uppercase;
+}
+.btn {
+    padding: 0;
+    width: 50px;
+    height: 50px;
+    margin: 0px 0.5%;
+    outline: none;
+    border: none;
+    opacity: 0.8;
+    display: inline-block;
+}
+.btn:hover {
+    opacity: 1;
+}
+.btn:active {
+    opacity: 0.8;
+}
+
+#start {
+    margin: 50px auto;
+    width: 20%;
+    font-size: 30px;
+}
+#start:hover {
+}
+#start:active {
+}
+
+/* end menu */
+.end_menu {
+    width: 100%;
+    position: fixed;
+    margin: 0 auto;
+    top: 30%;
+}
+.result {
+    width: 40%;
+    height: 300px;
+    background-color: #ffffff;
+    margin: 0 auto;
+    padding-left: 20px;
+    font-size: 50px;
+    line-height: 150px;
+}
+.result_btn {
+    text-align: center;
+    margin: 50px auto;
+}
+#reStart {
+    margin: 0px 30px;
+    width: 15%;
+    font-size: 30px;
+}
+#goBack {
+    margin: 0px 30px;
+    width: 15%;
+    font-size: 30px;
+}
+
+/* game start page */
+#instructions {
+    width: 100%;
+    height: 100%;
+  
+    user-select: none;
+    text-shadow: 1px 1px 1px #9e9e9e;
+  
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+  
+    -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
+    box-orient: horizontal;
+  
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+    box-pack: center;
+  
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    box-align: center;
+  
+    color: #ffffff;
+    text-align: center;
+    font-family: Arial;
+    font-size: 14px;
+    line-height: 24px;
+  
+    cursor: pointer;
+  }
