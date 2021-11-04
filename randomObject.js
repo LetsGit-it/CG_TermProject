@@ -7,7 +7,7 @@ window.onload = function init()
 	canvas.height = window.innerHeight;
 
 	const renderer = new THREE.WebGLRenderer({canvas});
-	renderer.setSize(canvas.width,canvas.height);
+	renderer.setSize(canvas.clientWidth,canvas.clientHeight);
 
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0x999999);
@@ -36,12 +36,88 @@ window.onload = function init()
     //정사면체 반지름
 	var tetraRadius;
 	var tetraDetail;
-	
+
+	var objects = [];
+	var deletingTime = [];
+	var worldObject;
+	worldObject = new THREE.Group();
+
 	//난이도 설정
-	difficulty(3);
 	
-	animate();
+	var time = 10.0;
+
+	gameStart();
+
+	function gameStart(){
+		var mode = difficulty(3);
+
+		//현재 일단은 5개만 띄우도록 설정
+		for(var i = 0 ; i < 5 ; i ++){
+			makeObject(mode);
+		}
+
+		startTimer(mode);
+		
+		animate();
+	}
+
+	function startTimer(mode){
+		var createObjectTime = 0.0;
+		var willDeleteTime = [];
+		timer = setInterval(function(){
+			if(time <= 0.0){
+				for(var i = 0 ; i < deletingTime.length; i++){
+					deletingTime.shift();
+					deleteObj = objects[0];
+					worldObject.remove(deleteObj);
+					objects.shift();
+				}
+				finishTime();
+			}
+			else{
+				if( createObjectTime == 0.5){
+					createObjectTime = 0.0;
+					makeObject(mode);
+					console.log("make");
+				}
+				console.log(deletingTime.length);
+				console.log(deletingTime);
+				console.log(objects);
+				console.log(worldObject);
+				for(var i = 0 ; i < deletingTime.length; i++){
+					if(deletingTime[i] >= time){
+						deleteObj = objects[i];
+						worldObject.remove(deleteObj);
+						willDeleteTime.push(i);
+					}
+				}
+				console.log(willDeleteTime);
+				for(var j = 0 ; j < willDeleteTime.length ; j++){
+					deletingTime.shift();
+					objects.shift();
+					console.log("delete");
+				}
+				willDeleteTime = [];
+				out.innerText = time.toFixed(1);
+				time = time - 0.1;
+				createObjectTime = createObjectTime + 0.1;
+			}
+		}, 100);
+	}
+
 	
+
+	function makeObject(mode){
+		object = randomObject();
+		drawObject(mode[object]);
+	}
+
+	function finishTime(){
+		time = 0.0;
+		out.innerText = time.toFixed(1);
+		clearInterval(timer);
+	}
+
 	////난이도 관련 코드
 	//dif 1 = easy / 2 = normal / 3 = hard
 	//array 0 = cube / 1 = sphere / 2 = theta / 3 = bomb
@@ -57,12 +133,7 @@ window.onload = function init()
 			//배열에 나타내고자 할 물체 나열
 			var easyMode = new Float32Array([0,0,0,0,1,1,1,2,2,2]);
 			
-            //현재 일단은 5개만 띄우도록 설정
-			for(var i = 0 ; i < 5 ; i ++){
-				object = randomObject();
-				drawObject(easyMode[object]);
-			}
-		
+			return easyMode;
 		}
         //난이도 중간
 		else if(dif == 2){
@@ -74,11 +145,8 @@ window.onload = function init()
 			tetraDetail = 0;
 			//배열에 나타내고자 할 물체 나열
 			var normalMode = new Float32Array([0,0,0,1,1,1,2,2,2,3]);
-			//현재 일단은 5개만 띄우도록 설정
-			for(var i = 0 ; i < 5 ; i ++){
-				object = randomObject();
-				drawObject(normalMode[object]);
-			}
+
+			return normalMode;
 		}
         //난이도 어려움
 		else{
@@ -90,11 +158,8 @@ window.onload = function init()
 			tetraDetail = 0;
 			//배열에 나타내고자 할 물체 나열
 			var hardMode = new Float32Array([0,0,1,1,1,2,2,2,3,3]);
-			//현재 일단은 5개만 띄우도록 설정
-			for(var i = 0 ; i < 5 ; i ++){
-				object = randomObject();
-				drawObject(hardMode[object]);
-			}
+
+			return hardMode;
 		}
 		
 	}
@@ -103,6 +168,7 @@ window.onload = function init()
     ////화면에 나타나게 하는 애니메이션 코드
 	function animate() {
 		renderer.render(scene,camera);
+		scene.add(worldObject);
 		requestAnimationFrame(animate);
 	}
 	
@@ -124,7 +190,7 @@ window.onload = function init()
     //만약 5가 뽑혔다면, 5를 리턴해주고 해당배열중 5에 위치해있는 숫자에 해당하는 물체를 띄움
 	function randomObject(){
 		var objectType = Math.ceil((Math.random() * 1000) % 10) - 1;
-		console.log(objectType);
+		//console.log(objectType);
 		
 		return objectType;
 		
@@ -170,7 +236,10 @@ window.onload = function init()
 		sphere.rotation.x = 45;
 		sphere.rotation.y = 45;
         //화면에 추가
-		scene.add( sphere );
+		objects.push(sphere);
+		deletingTime.push((time - 4.0));
+		worldObject.add( sphere );
+		
 	}
 	
 	function createCube(cubeWidth, cubeHeight, cubeDepth){
@@ -188,7 +257,10 @@ window.onload = function init()
 		cube.rotation.x = 45;
 		cube.rotation.y = 45;
         //화면에 추가
-		scene.add( cube );
+		objects.push(cube);
+		deletingTime.push((time - 4.0));
+		worldObject.add( cube );
+		
 	}
 	
 	function createTetrahedron(tetraRadius, tetraDetail){
@@ -203,7 +275,9 @@ window.onload = function init()
 		tetrahedron.rotation.x = 45;
 		tetrahedron.rotation.y = 45;
 		//화면에 추가
-		scene.add( tetrahedron );
+		objects.push(tetrahedron);
+		deletingTime.push((time - 4.0));
+		worldObject.add( tetrahedron );
 	}
 	
 	function createBomb(sphereRadius){
@@ -220,8 +294,13 @@ window.onload = function init()
 		bomb.rotation.x = 45;
 		bomb.rotation.y = 45;
         //화면에 추가
-		scene.add( bomb );
+		objects.push(bomb);
+		deletingTime.push((time - 4.0));
+		worldObject.add( bomb );
 	}
 
+
 }
+
+
 
