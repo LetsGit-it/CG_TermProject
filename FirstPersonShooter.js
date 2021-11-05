@@ -45,7 +45,6 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
         pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, pitchObject.rotation.x));
     };
 
-
     //마우스 눌를때 이벤트
     var onMouseDownClick = function (event) {
         if (scope.enabled === false) return;
@@ -130,6 +129,7 @@ clock = new THREE.Clock();
 
 //프로그램 처음 시작될 때
 function gameStart(level) {
+    mouseGui();
     timerObject = document.getElementById("timer"); //시간 표시
     timerObject.style.display = "block";
 
@@ -273,7 +273,6 @@ function gameStart(level) {
         });
     });
 
-
     //물체 생성
 
     //구체 반지름
@@ -299,7 +298,6 @@ function gameStart(level) {
     var validHits = 0; //유효 타격수(물체를 맞춘 경우)
     var validHitsPercentage = 0; //유효 타격율(타격 정확도)
 
-
     function startGame(level) {
         var mode = difficulty(level);
 
@@ -322,11 +320,9 @@ function gameStart(level) {
                     objects.shift();
                 }
                 finishTime();
-            }
-            else {
+            } else {
                 if (pause == true) {
-                }
-                else {
+                } else {
                     if (createObjectTime == 0.5) {
                         createObjectTime = 0.0;
                         makeObject(mode);
@@ -334,13 +330,15 @@ function gameStart(level) {
                     }
 
                     //마우스 클릭 하였을때, 총 쏘는 거
-                    if (controls.click === true) { //마우스 클릭했을 때
+                    if (controls.click === true) {
+                        //마우스 클릭했을 때
                         totalHits++; //전체 타격수 (마우스 클릭할 때마다 1씩 증가)
                         console.log(totalHits);
                         const intersects = raycaster.intersectObjects(worldObject.children);
                         //raycaster를 쏘아서 맞는 object가 있으면 intersects 배열에 담음
 
-                        if (intersects.length > 0) { //raycaster에 맞은 object가 있다면
+                        if (intersects.length > 0) {
+                            //raycaster에 맞은 object가 있다면
                             const intersect = intersects[0].object;
                             intersect.material.color.set(0xffffff); //빔에 맞은 object의 색을 흰색으로 변경시킴
                         }
@@ -352,30 +350,31 @@ function gameStart(level) {
                             var B = mesh.material.color.b;
                             var RGB = R + G + B;
                             //console.log(R + G + B);
-                            if (RGB == 3) { //빔에 맞은 object는 색이 흰색으로 변해서 R+G+B= 3
+                            if (RGB == 3) {
+                                //빔에 맞은 object는 색이 흰색으로 변해서 R+G+B= 3
                                 worldObject.remove(mesh); //빔에 맞으면 제거
                                 //console.log( mesh.geometry.type);
                                 //console.log( objects[k]);
                                 var deletedObjType = mesh.geometry.type; //삭제되는 object의 타입
-                                if (deletedObjType == "BoxGeometry") //정육면체
-                                {
+                                if (deletedObjType == "BoxGeometry") {
+                                    //정육면체
                                     score += 30;
                                     scoreOutObject.innerText = "SCORE: " + score.toFixed(1);
                                 }
-                                if (deletedObjType == "IcosahedronGeometry") //각진 구체
-                                {
+                                if (deletedObjType == "IcosahedronGeometry") {
+                                    //각진 구체
                                     score += 50;
                                     scoreOutObject.innerText = "SCORE: " + score.toFixed(1);
                                 }
 
-                                if (deletedObjType == "TetrahedronGeometry") //정사면체
-                                {
+                                if (deletedObjType == "TetrahedronGeometry") {
+                                    //정사면체
                                     score += 100;
                                     scoreOutObject.innerText = "SCORE: " + score.toFixed(1);
                                 }
 
-                                if (deletedObjType == "SphereGeometry") //검은색 구체(폭탄)
-                                {
+                                if (deletedObjType == "SphereGeometry") {
+                                    //검은색 구체(폭탄)
                                     score -= 100;
                                     scoreOutObject.innerText = "SCORE: " + score.toFixed(1);
                                 }
@@ -384,7 +383,6 @@ function gameStart(level) {
 
                                 console.log("Delete Success");
                             }
-
                         }
 
                         // // 총알 튀는거 표시
@@ -427,8 +425,6 @@ function gameStart(level) {
         }, 100);
     }
 
-
-
     function makeObject(mode) {
         object = randomObject();
         drawObject(mode[object]);
@@ -438,10 +434,9 @@ function gameStart(level) {
         time = 0.0;
         timeObject.innerText = time.toFixed(1);
         clearInterval(timer);
-        validHitsPercentage = validHits / totalHits * 100; //유효타격율 계산
+        validHitsPercentage = (validHits / totalHits) * 100; //유효타격율 계산
         validHitsOutObject.innerText = "VALID HITS(%): " + validHitsPercentage.toFixed(1);
         console.log(validHitsPercentage + "%"); //게임이 종료될 때 계산됨
-
     }
 
     ////난이도 관련 코드
@@ -487,7 +482,6 @@ function gameStart(level) {
 
             return hardMode;
         }
-
     }
     ////난이도 관련 코드 끝
 
@@ -505,14 +499,13 @@ function gameStart(level) {
         return y + 20;
     }
 
-    //앞서 배열에 10개가 들어있는데, 0 부터 9중 하나를 뽑아 리턴 해주는 함수 
+    //앞서 배열에 10개가 들어있는데, 0 부터 9중 하나를 뽑아 리턴 해주는 함수
     //만약 5가 뽑혔다면, 5를 리턴해주고 해당배열중 5에 위치해있는 숫자에 해당하는 물체를 띄움
     function randomObject() {
         var objectType = Math.ceil((Math.random() * 1000) % 10) - 1;
         //console.log(objectType);
 
         return objectType;
-
     }
 
     //물체를 그리는 함수
@@ -523,21 +516,17 @@ function gameStart(level) {
     function drawObject(type) {
         if (type == 0) {
             createCube(cubeWidth, cubeHeight, cubeDepth);
-        }
-        else if (type == 1) {
+        } else if (type == 1) {
             createSphere(sphereRadius);
-        }
-        else if (type == 2) {
+        } else if (type == 2) {
             createTetrahedron(tetraRadius, tetraDetail);
-        }
-        else {
+        } else {
             createBomb(sphereRadius);
         }
     }
 
     //각진 구체 생성 함수
     function createSphere(sphereRadius) {
-
         //각진 구체 반지름 설정
         geometry = new THREE.IcosahedronGeometry(sphereRadius);
         //색상 지정
@@ -553,13 +542,11 @@ function gameStart(level) {
         sphere.receiveShadow = true;
         //화면에 추가
         objects.push(sphere);
-        deletingTime.push((time - 4.0));
+        deletingTime.push(time - 4.0);
         worldObject.add(sphere);
-
     }
 
     function createCube(cubeWidth, cubeHeight, cubeDepth) {
-
         //정육면체 너비, 높이, 깊이 설정
         geometry = new THREE.BoxGeometry(cubeWidth, cubeHeight, cubeDepth);
         //색상 지정
@@ -576,9 +563,8 @@ function gameStart(level) {
         cube.receiveShadow = true;
         //화면에 추가
         objects.push(cube);
-        deletingTime.push((time - 4.0));
+        deletingTime.push(time - 4.0);
         worldObject.add(cube);
-
     }
 
     function createTetrahedron(tetraRadius, tetraDetail) {
@@ -596,7 +582,7 @@ function gameStart(level) {
         tetrahedron.receiveShadow = true;
         //화면에 추가
         objects.push(tetrahedron);
-        deletingTime.push((time - 4.0));
+        deletingTime.push(time - 4.0);
         worldObject.add(tetrahedron);
     }
 
@@ -617,7 +603,7 @@ function gameStart(level) {
         bomb.receiveShadow = true;
         //화면에 추가
         objects.push(bomb);
-        deletingTime.push((time - 4.0));
+        deletingTime.push(time - 4.0);
         worldObject.add(bomb);
     }
 
@@ -659,7 +645,6 @@ function onWindowResize() {
 
 //애니메이션 함수,
 function gamePageAnimate() {
-
     requestAnimationFrame(gamePageAnimate);
 
     //만약 1인칭 사람이 정상적으로 생성됐다면,
@@ -667,7 +652,7 @@ function gamePageAnimate() {
         controls.update();
         raycaster.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
         scene.remove(arrow);
-        arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xFF0000);
+        arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 3, 0xffffff, 0.5, 0.05);
         scene.add(arrow);
         // position the gun in front of the camera
 
@@ -792,39 +777,20 @@ function randomPosition(radius) {
 }
 
 //GUI 부분, 옆에 마우스 감도랑 사람 키, 점프 속도 설정하는 부분
-// var Controlers = function () {
-//     this.MouseMoveSensitivity = 0.002;
-//     this.speed = 800.0;
-//     this.jumpHeight = 350.0;
-//     this.height = 30.0;
-// };
+var Controlers = function () {
+    this.MouseMoveSensitivity = 0.002;
+    this.speed = 800.0;
+    this.jumpHeight = 350.0;
+    this.height = 30.0;
+};
 
-// window.onload = function () {
-//     var controler = new Controlers();
-//     var gui = new dat.GUI();
-//     gui.add(controler, "MouseMoveSensitivity", 0, 1)
-//         .step(0.001)
-//         .name("Mouse Sensitivity")
-//         .onChange(function (value) {
-//             controls.MouseMoveSensitivity = value;
-//         });
-//     gui.add(controler, "speed", 1, 8000)
-//         .step(1)
-//         .name("Speed")
-//         .onChange(function (value) {
-//             controls.speed = value;
-//         });
-//     gui.add(controler, "jumpHeight", 0, 2000)
-//         .step(1)
-//         .name("Jump Height")
-//         .onChange(function (value) {
-//             controls.jumpHeight = value;
-//         });
-//     gui.add(controler, "height", 1, 3000)
-//         .step(1)
-//         .name("Play Height")
-//         .onChange(function (value) {
-//             controls.height = value;
-//             camera.updateProjectionMatrix();
-//         });
-// };
+var mouseGui = function () {
+    var controler = new Controlers();
+    var gui = new dat.GUI();
+    gui.add(controler, "MouseMoveSensitivity", 0, 0.01)
+        .step(0.0005)
+        .name("Mouse Sensitivity")
+        .onChange(function (value) {
+            controls.MouseMoveSensitivity = value;
+        });
+};
