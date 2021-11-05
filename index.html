@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <script src="https://threejs.org/examples/js/libs/dat.gui.min.js"></script>
+        <script type="text/javascript" src="./js/three.min.js"></script>
+        <script type="text/javascript" src="./js/orbitcontrols.js"></script>
+        <script type="text/javascript" src="./js/MTLLoader.js"></script>
+        <script type="text/javascript" src="./js/OBJLoader.js"></script>
+
+        <script type="text/javascript" src="start-end.js"></script>
+        <script type="text/javascript" src="FirstPersonShooter.js"></script>
+        <title>Term Project</title>
+
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <!-- <canvas id="gl-canvas"> Oops ... your browser doesn't support the HTML5 canvas element </canvas> -->
+        <div id="loading">
+            <h1>Loading...</h1>
+        </div>
+        <div class="drag">This is Term Project Start Page</div>
+        <!-- <div class="buttons">
+            <button id="canMove">Mouse Off</button>
+            <button id="autoRotate">Auto Rotate</button>
+            <button id="zoom">Outside Box</button>
+        </div> -->
+
+        <div id="startId" class="start_menu">
+            <div class="setting">
+                <button id="mapLeft" class="btn"><img src="./image/left.png" width="50px" height="50px" /></button>
+                <div id="map" class="map-btn">Space</div>
+                <button id="mapRight" class="btn"><img src="./image/right.png" width="50px" height="50px" /></button>
+            </div>
+            <div class="setting">
+                <button id="levelDown" class="btn"><img src="./image/left.png" width="50px" height="50px" /></button>
+                <div id="level" class="level-btn">EASY</div>
+                <button id="levelUp" class="btn"><img src="./image/right.png" width="50px" height="50px" /></button>
+            </div>
+            <button id="start">START</button>
+        </div>
+        <div id="instructions" style="display: none">
+            <div>
+                <h1>Click to begin</h1>
+
+                Shoot: LEFT MOUSE CLICK<br />
+                Look: MOUSE
+
+            </div>
+        </div>
+        <div id="endId" class="end_menu" style="display: none">
+            <div id="resultContent" class="result">Map : Mountain<br />Level : EASY</div>
+            <div class="result_btn">
+                <button id="reStart">RESTART</button>
+                <button id="goBack">GO HOME</button>
+            </div>
+        </div>
+        <div id="timer" style="display: none">
+            <output id="timeObject">
+                60.00
+            </output>
+        </div>
+
+        <div id="score" style="display: none">
+            <output id="scoreOutObject">
+                SCORE: 0
+            </output>
+        </div>
+
+        <div id="validHitsPer" style="display: none">
+            <output id="validHitsObject">
+            </output>
+        </div>
+
+    </body>
+</html>
