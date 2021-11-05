@@ -45,72 +45,6 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
         pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, pitchObject.rotation.x));
     };
 
-    //키보드 눌릴때 이벤트
-    // var onKeyDown = function (event) {
-    //     if (scope.enabled === false) return;
-
-    //     switch (event.keyCode) {
-    //         case 38: // up
-    //         case 87: // w
-    //             moveForward = true;
-    //             break;
-
-    //         case 37: // left
-    //         case 65: // a
-    //             moveLeft = true;
-    //             break;
-
-    //         case 40: // down
-    //         case 83: // s
-    //             moveBackward = true;
-    //             break;
-
-    //         case 39: // right
-    //         case 68: // d
-    //             moveRight = true;
-    //             break;
-
-    //         case 32: // space
-    //             if (canJump === true) velocity.y += run === false ? scope.jumpHeight : scope.jumpHeight + 50;
-    //             canJump = false;
-    //             break;
-
-    //         case 16: // shift
-    //             run = true;
-    //             break;
-    //     }
-    // }.bind(this);
-
-    // //키보드 땔때 이벤트
-    // var onKeyUp = function (event) {
-    //     if (scope.enabled === false) return;
-
-    //     switch (event.keyCode) {
-    //         case 38: // up
-    //         case 87: // w
-    //             moveForward = false;
-    //             break;
-
-    //         case 37: // left
-    //         case 65: // a
-    //             moveLeft = false;
-    //             break;
-
-    //         case 40: // down
-    //         case 83: // s
-    //             moveBackward = false;
-    //             break;
-
-    //         case 39: // right
-    //         case 68: // d
-    //             moveRight = false;
-    //             break;
-
-    //         case 16: // shift
-    //             run = false;
-    //             break;
-    //     }
-    // }.bind(this);
 
     //마우스 눌를때 이벤트
     var onMouseDownClick = function (event) {
@@ -125,16 +59,12 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
 
     scope.dispose = function () {
         document.removeEventListener("mousemove", onMouseMove, false);
-        // document.removeEventListener("keydown", onKeyDown, false);
-        // document.removeEventListener("keyup", onKeyUp, false);
         document.removeEventListener("mousedown", onMouseDownClick, false);
         document.removeEventListener("mouseup", onMouseUpClick, false);
     };
 
     //이벤트 추가
     document.addEventListener("mousemove", onMouseMove, false);
-    // document.addEventListener("keydown", onKeyDown, false);
-    // document.addEventListener("keyup", onKeyUp, false);
     document.addEventListener("mousedown", onMouseDownClick, false);
     document.addEventListener("mouseup", onMouseUpClick, false);
 
@@ -187,14 +117,22 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
 let instructions;
 let clickCnt = 0;
 //여기부터 물체 생성 및 맵 관련 코드들////////////////////
-var raycaster, arrow, world, gun, clock;
+var raycaster, arrow, worldObject, gun, clock;
 // var camera, scene, renderer, controls;
 var boxes = [];
 // game();
 // gamePageAnimate();
 
+var pause= true;
+var gameStarted = false;
+
+clock = new THREE.Clock();
+
 //프로그램 처음 시작될 때
-function gameStart() {
+function gameStart(level) {
+    mouseGui();
+    timerObject = document.getElementById("timer");
+    timerObject.style.display = "block";
     //마우스로 1인칭 고정하기, 이해는 잘못함...
     instructions = document.getElementById("instructions");
     console.log(instructions);
@@ -203,9 +141,17 @@ function gameStart() {
         var element = document.body;
         var pointerlockchange = function (event) {
             if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
+                pause = false;
+                console.log(pause);
+                if(gameStarted == false){
+                    gameStarted = true;
+                    startGame(level);
+                }
                 controls.enabled = true;
                 instructions.style.display = "none";
             } else {
+                pause = true;
+                console.log(pause);
                 controls.enabled = false;
                 instructions.style.display = "-webkit-box";
             }
@@ -247,7 +193,6 @@ function gameStart() {
         instructions.innerHTML = "Your browser not suported PointerLock";
     }
 
-    clock = new THREE.Clock();
     //카메라
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 30000);
 
@@ -322,7 +267,278 @@ function gameStart() {
         });
     });
 
-    //이제 네모난 박스를 랜덤으로 생성하는 코드들
+
+    //물체 생성
+
+    //구체 반지름
+	var sphereRadius;
+    //정육면체 너비
+	var cubeWidth;
+    //정육면체 높이
+	var	cubeHeight;
+    //정육면체 깊이
+	var	cubeDepth;
+    //정사면체 반지름
+	var tetraRadius;
+	var tetraDetail;
+
+	var objects = [];
+	var deletingTime = [];
+	worldObject = new THREE.Group();
+    var time = 60.0;
+	function startGame(level){
+		var mode = difficulty(level);
+
+		//현재 일단은 5개만 띄우도록 설정
+		for(var i = 0 ; i < 5 ; i ++){
+			makeObject(mode);
+		}
+		startTimer(mode);
+	}
+
+	function startTimer(mode){
+		var createObjectTime = 0.0;
+		var willDeleteTime = [];
+		timer = setInterval(function(){
+			if(time <= 0){
+				for(var i = 0 ; i < deletingTime.length; i++){
+					deletingTime.shift();
+					deleteObj = objects[0];
+					worldObject.remove(deleteObj);
+					objects.shift();
+				}
+				finishTime();
+			}
+			else{
+                if(pause == true){
+                }
+                else{
+                    if( createObjectTime == 0.5){
+                        createObjectTime = 0.0;
+                        makeObject(mode);
+                        console.log("make");
+                    }
+                    //console.log(deletingTime.length);
+                    //console.log(deletingTime);
+                    //console.log(objects);
+                    //console.log(worldObject);
+                    for(var i = 0 ; i < deletingTime.length; i++){
+                        if(deletingTime[i] >= time){
+                            deleteObj = objects[i];
+                            worldObject.remove(deleteObj);
+                            willDeleteTime.push(i);
+                        }
+                    }
+                    //console.log(willDeleteTime);
+                    for(var j = 0 ; j < willDeleteTime.length ; j++){
+                        deletingTime.shift();
+                        objects.shift();
+                        console.log("delete");
+                    }
+                    willDeleteTime = [];
+                    time = time - 0.1;
+                    timeObject.innerText = time.toFixed(1);
+                    console.log(time.toFixed(1));
+                    createObjectTime = createObjectTime + 0.1;
+                }
+			}
+		}, 100);
+	}
+
+	
+
+	function makeObject(mode){
+		object = randomObject();
+		drawObject(mode[object]);
+	}
+
+	function finishTime(){
+		time = 0.0;
+		timeObject.innerText = time.toFixed(1);
+        clearInterval(timer);
+	}
+
+	////난이도 관련 코드
+	//dif 1 = easy / 2 = normal / 3 = hard
+	//array 0 = cube / 1 = sphere / 2 = theta / 3 = bomb
+	function difficulty(dif){
+        //난이도 쉬움
+		if(dif == 0){
+			sphereRadius = 0.4;
+			cubeWidth = 0.6;
+			cubeHeight = 0.6;
+			cubeDepth = 0.6;
+			tetraRadius = 0.5;
+			tetraDetail = 0;
+			//배열에 나타내고자 할 물체 나열
+			var easyMode = new Float32Array([0,0,0,0,1,1,1,2,2,2]);
+			
+			return easyMode;
+		}
+        //난이도 중간
+		else if(dif == 1){
+			sphereRadius = 0.3;
+			cubeWidth = 0.5;
+			cubeHeight = 0.5;
+			cubeDepth = 0.5;
+			tetraRadius = 0.4;
+			tetraDetail = 0;
+			//배열에 나타내고자 할 물체 나열
+			var normalMode = new Float32Array([0,0,0,1,1,1,2,2,2,3]);
+
+			return normalMode;
+		}
+        //난이도 어려움
+		else{
+			sphereRadius = 0.2;
+			cubeWidth = 0.4;
+			cubeHeight = 0.4;
+			cubeDepth = 0.4;
+			tetraRadius = 0.3;
+			tetraDetail = 0;
+			//배열에 나타내고자 할 물체 나열
+			var hardMode = new Float32Array([0,0,1,1,1,2,2,2,3,3]);
+
+			return hardMode;
+		}
+		
+	}
+	////난이도 관련 코드 끝
+	
+    //물체의 X좌표를 랜덤하게 가져오는 함수
+	function randomLocationX(){
+        var x = (Math.random() * 1000) % 20;
+		//console.log(x - 4);
+		return x - 10;
+	}
+	
+    //물체의 Y좌표를 랜덤하게 가져오는 함수
+	function randomLocationY(){
+		var y = (Math.random() * 1000) % 10;
+		//console.log(y - 2);
+		return y + 20;
+	}
+	
+    //앞서 배열에 10개가 들어있는데, 0 부터 9중 하나를 뽑아 리턴 해주는 함수 
+    //만약 5가 뽑혔다면, 5를 리턴해주고 해당배열중 5에 위치해있는 숫자에 해당하는 물체를 띄움
+	function randomObject(){
+		var objectType = Math.ceil((Math.random() * 1000) % 10) - 1;
+		//console.log(objectType);
+		
+		return objectType;
+		
+	}
+	
+    //물체를 그리는 함수
+    //함수에 인자가 0이 들어왔다면 정육면체 생성
+    //인자가 1이 들어왔다면 구체 생성
+    //인자가 2가 들어왔다면 정사면체 생성
+    //인자가 3이 들어왔다면 폭탄 생성
+	function drawObject(type){
+		if(type == 0)
+		{
+			createCube(cubeWidth, cubeHeight, cubeDepth);
+		}
+		else if(type == 1)
+		{
+			createSphere(sphereRadius);
+		}
+		else if(type == 2)
+		{
+			createTetrahedron(tetraRadius, tetraDetail);
+		}
+		else
+		{
+			createBomb(sphereRadius);
+		}	
+	}
+		
+	//구체 생성 함수
+	function createSphere(sphereRadius){
+			
+		segments = 32;
+		//구체 반지름, 조각의 수 설정
+		geometry = new THREE.SphereGeometry( sphereRadius, segments, segments );
+        //색상 지정
+		material = new THREE.MeshPhongMaterial( { color: 0x00ffff } );
+        //구체 생성
+		sphere = new THREE.Mesh( geometry, material );
+		
+        //구체의 위치값을 함수에서 받아와 무작위 위치 설정
+		sphere.position.set(randomLocationX(),randomLocationY(),-20.0);
+		sphere.rotation.x = 45;
+		sphere.rotation.y = 45;
+        sphere.castShadow = true;
+        sphere.receiveShadow = true;
+        //화면에 추가
+		objects.push(sphere);
+		deletingTime.push((time - 4.0));
+		worldObject.add( sphere );
+	}
+	
+	function createCube(cubeWidth, cubeHeight, cubeDepth){
+
+		//정육면체 너비, 높이, 깊이 설정
+		geometry = new THREE.BoxGeometry( cubeWidth, cubeHeight, cubeDepth );
+        //색상 지정
+		material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
+        //정육면체 생성
+		cube = new THREE.Mesh( geometry, material );
+		
+        //정육면체의 위치값을 함수에서 받아와 무작위 위치 설정
+		cube.position.set(randomLocationX(),randomLocationY(),-20.0);
+		
+		cube.rotation.x = 45;
+		cube.rotation.y = 45;
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        //화면에 추가
+		objects.push(cube);
+		deletingTime.push((time - 4.0));
+		worldObject.add( cube );
+	}
+	
+	function createTetrahedron(tetraRadius, tetraDetail){
+		//정사면체 반지름, detail 설정
+		geometry = new THREE.TetrahedronGeometry( tetraRadius, tetraDetail);
+        //색상 지정
+		material = new THREE.MeshPhongMaterial( { color: 0xff00fe } );
+        //정사면체 생성
+		tetrahedron = new THREE.Mesh( geometry, material );
+		//정사면체의 위치값을 함수에서 받아와 무작위 위치 설정
+		tetrahedron.position.set(randomLocationX(),randomLocationY(),-20.0);
+		tetrahedron.rotation.x = 45;
+		tetrahedron.rotation.y = 45;
+        tetrahedron.castShadow = true;
+        tetrahedron.receiveShadow = true;
+		//화면에 추가
+		objects.push(tetrahedron);
+		deletingTime.push((time - 4.0));
+		worldObject.add( tetrahedron );
+	}
+	
+	function createBomb(sphereRadius){
+		segments = 32;
+		//폭탄 반지름, 조각의 수 설정
+		geometry = new THREE.SphereGeometry( sphereRadius, segments, segments );
+        //폭탄 색상 지정
+		material = new THREE.MeshPhongMaterial( { color: 0x000000} );
+        //폭탄 생성
+		bomb = new THREE.Mesh( geometry, material );
+		
+        //폭탄의 위치값을 함수에서 받아와 무작위 위치 설정
+		bomb.position.set(randomLocationX(),randomLocationY(),-20.0);
+		bomb.rotation.x = 45;
+		bomb.rotation.y = 45;
+        bomb.castShadow = true;
+        bomb.receiveShadow = true;
+        //화면에 추가
+		objects.push(bomb);
+		deletingTime.push((time - 4.0));
+		worldObject.add( bomb );
+	}
+
+    /*//이제 네모난 박스를 랜덤으로 생성하는 코드들
     var boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
     boxGeometry.translate(0, 0.5, 0);
@@ -343,9 +559,9 @@ function gameStart() {
         mesh.matrixAutoUpdate = false;
         boxes.push(mesh);
         world.add(mesh);
-    }
+    }*/
 
-    scene.add(world);
+    scene.add(worldObject);
 
     gamePageAnimate();
 }
@@ -360,8 +576,7 @@ function onWindowResize() {
 
 //애니메이션 함수,
 function gamePageAnimate() {
-    var time = Date.now() * 0.0005;
-    var delta = clock.getDelta();
+
     requestAnimationFrame(gamePageAnimate);
 
     //만약 1인칭 사람이 정상적으로 생성됐다면,
@@ -369,7 +584,7 @@ function gamePageAnimate() {
         controls.update();
         raycaster.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
         scene.remove(arrow);
-        arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0x111111);
+        arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xFF0000);
         scene.add(arrow);
         // position the gun in front of the camera
 
@@ -387,20 +602,20 @@ function gamePageAnimate() {
 
         //마우스 클릭 하였을때, 총 쏘는 거
         if (controls.click === true) {
-            const intersects = raycaster.intersectObjects(world.children);
+            const intersects = raycaster.intersectObjects(worldObject.children);
 
             if (intersects.length > 0) {
                 const intersect = intersects[0].object;
                 intersect.material.color.set(0xffffff);
             }
-            for (let k = 0; k < world.children.length; k++) {
-                var mesh = world.children[k];
+            for (let k = 0; k < worldObject.children.length; k++) {
+                var mesh = worldObject.children[k];
                 var R = mesh.material.color.r;
                 var G = mesh.material.color.g;
                 var B = mesh.material.color.b;
                 var RGB = mesh.material.color;
                 console.log(R + G + B);
-                if (R + G + B == 3) world.remove(mesh);
+                if (R + G + B == 3) worldObject.remove(mesh);
             }
 
             // // 총알 튀는거 표시
@@ -530,39 +745,39 @@ function randomPosition(radius) {
 }
 
 //GUI 부분, 옆에 마우스 감도랑 사람 키, 점프 속도 설정하는 부분
-// var Controlers = function () {
-//     this.MouseMoveSensitivity = 0.002;
-//     this.speed = 800.0;
-//     this.jumpHeight = 350.0;
-//     this.height = 30.0;
-// };
+var Controlers = function () {
+    this.MouseMoveSensitivity = 0.002;
+    this.speed = 800.0;
+    this.jumpHeight = 350.0;
+    this.height = 30.0;
+};
 
-// window.onload = function () {
-//     var controler = new Controlers();
-//     var gui = new dat.GUI();
-//     gui.add(controler, "MouseMoveSensitivity", 0, 1)
-//         .step(0.001)
-//         .name("Mouse Sensitivity")
-//         .onChange(function (value) {
-//             controls.MouseMoveSensitivity = value;
-//         });
-//     gui.add(controler, "speed", 1, 8000)
-//         .step(1)
-//         .name("Speed")
-//         .onChange(function (value) {
-//             controls.speed = value;
-//         });
-//     gui.add(controler, "jumpHeight", 0, 2000)
-//         .step(1)
-//         .name("Jump Height")
-//         .onChange(function (value) {
-//             controls.jumpHeight = value;
-//         });
-//     gui.add(controler, "height", 1, 3000)
-//         .step(1)
-//         .name("Play Height")
-//         .onChange(function (value) {
-//             controls.height = value;
-//             camera.updateProjectionMatrix();
-//         });
-// };
+var mouseGui = function () {
+    var controler = new Controlers();
+    var gui = new dat.GUI();
+    gui.add(controler, "MouseMoveSensitivity", 0, 0.005)
+        .step(0.0005)
+        .name("Mouse Sensitivity")
+        .onChange(function (value) {
+            controls.MouseMoveSensitivity = value;
+        });
+    // gui.add(controler, "speed", 1, 8000)
+    //     .step(1)
+    //     .name("Speed")
+    //     .onChange(function (value) {
+    //         controls.speed = value;
+    //     });
+    // gui.add(controler, "jumpHeight", 0, 2000)
+    //     .step(1)
+    //     .name("Jump Height")
+    //     .onChange(function (value) {
+    //         controls.jumpHeight = value;
+    //     });
+    // gui.add(controler, "height", 1, 3000)
+    //     .step(1)
+    //     .name("Play Height")
+    //     .onChange(function (value) {
+    //         controls.height = value;
+    //         camera.updateProjectionMatrix();
+    //     });
+};
