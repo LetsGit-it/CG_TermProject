@@ -136,6 +136,9 @@ function gameStart(level) {
     scoreObject = document.getElementById("score"); //점수 표시
     scoreObject.style.display = "block";
 
+    validHitsObject = document.getElementById("validHitsPer"); //점수 표시
+    validHitsObject.style.display = "block";
+
     //마우스로 1인칭 고정하기, 이해는 잘못함...
     instructions = document.getElementById("instructions");
     //console.log(instructions);
@@ -436,6 +439,7 @@ function gameStart(level) {
         timeObject.innerText = time.toFixed(1);
         clearInterval(timer);
         validHitsPercentage = validHits / totalHits * 100; //유효타격율 계산
+        validHitsOutObject.innerText = "VALID HITS(%): " + validHitsPercentage.toFixed(1);
         console.log(validHitsPercentage + "%"); //게임이 종료될 때 계산됨
 
     }

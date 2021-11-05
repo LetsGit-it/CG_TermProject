@@ -166,7 +166,7 @@ body {
 }
 
 /* valid hits percentage */
-#validHitsper{
+#validHitsPer{
     position: fixed;
     left: 0%;
     top: 20%;
