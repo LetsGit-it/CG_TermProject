@@ -107,7 +107,7 @@ window.onload = function init() {
     mapContent = document.getElementById("map");
     levelContent = document.getElementById("level");
 
-    restartBtn = document.getElementById("reStart");
+    // restartBtn = document.getElementById("reStart");
     gobackBtn = document.getElementById("goBack");
     resultContent = document.getElementById("resultContent");
 
@@ -141,17 +141,15 @@ window.onload = function init() {
         alert("Start!\nMap : " + mapContent.innerText + "\nLevel : " + levelContent.innerText);
 
         gameStart(levelIndex);
-        return;
     });
 
-    restartBtn.addEventListener("click", function () {
-        alert("ReStart!\nMap : " + mapContent.innerText + "\nLevel : " + levelContent.innerText);
+    // restartBtn.addEventListener("click", function () {
+    //     alert("ReStart!\nMap : " + mapContent.innerText + "\nLevel : " + levelContent.innerText);
 
-        score = Math.floor(Math.random() * 1000) + 1;
-        var resultStr1 = "Score : " + score;
-        var resultStr2 = "Level : " + level[levelIndex];
-        resultContent.innerHTML = resultStr1 + "<br/>" + resultStr2;
-    });
+    //     location.reload();
+
+    //     gameStart(levelIndex);
+    // });
     gobackBtn.addEventListener("click", function () {
         levelIndex = 0;
         skyboxImageIndex = 0;
@@ -159,8 +157,10 @@ window.onload = function init() {
         switchSkyBox(skyboxImage[skyboxImageIndex]);
         levelContent.textContent = level[levelIndex];
 
-        document.getElementById("startId").style.display = "block";
-        document.getElementById("endId").style.display = "none";
+        // document.getElementById("startId").style.display = "block";
+        // document.getElementById("instructions").style.display = "none";
+        // document.getElementById("endId").style.display = "none";
+        location.reload();
     });
 
     window.addEventListener("resize", onWindowResize, false);

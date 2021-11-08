@@ -141,6 +141,7 @@ function gameStart(level) {
 
     //마우스로 1인칭 고정하기, 이해는 잘못함...
     instructions = document.getElementById("instructions");
+    isFinish = false;
     //console.log(instructions);
     var havePointerLock = "pointerLockElement" in document || "mozPointerLockElement" in document || "webkitPointerLockElement" in document;
     if (havePointerLock) {
@@ -156,10 +157,17 @@ function gameStart(level) {
                 controls.enabled = true;
                 instructions.style.display = "none";
             } else {
-                pause = true;
-                //console.log(pause);
-                controls.enabled = false;
-                instructions.style.display = "-webkit-box";
+                if (isFinish == true) {
+                    pause = true;
+                    console.log("게임 종료");
+                    controls.enabled = false;
+                    instructions.style.display = "none";
+                } else {
+                    pause = true;
+                    console.log("잠시 멈춤");
+                    controls.enabled = false;
+                    instructions.style.display = "-webkit-box";
+                }
             }
         };
         var pointerlockerror = function (event) {
@@ -291,7 +299,7 @@ function gameStart(level) {
     var deletingTime = [];
     var worldObject;
     worldObject = new THREE.Group();
-    var time = 60.0;
+    var time = 5.0;
 
     var score = 0; //점수
     var totalHits = 0; //전체 타격수
@@ -431,6 +439,10 @@ function gameStart(level) {
     }
 
     function finishTime() {
+        isFinish = true;
+        document.exitPointerLock();
+        document.getElementById("endId").style.display = "block";
+
         time = 0.0;
         timeObject.innerText = time.toFixed(1);
         clearInterval(timer);

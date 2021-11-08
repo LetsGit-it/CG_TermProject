@@ -109,7 +109,7 @@ body {
     width: 100%;
     position: fixed;
     margin: 0 auto;
-    top: 30%;
+    top: 35%;
 }
 .result {
     width: 40%;
@@ -131,8 +131,9 @@ body {
 }
 #goBack {
     margin: 0px 30px;
-    width: 15%;
-    font-size: 30px;
+    width: 20%;
+    height: 120px;
+    font-size: 50px;
 }
 
 /* timer */
