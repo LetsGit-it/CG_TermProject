@@ -5,7 +5,7 @@ let autoRotate = true;
 let flag = false;
 
 var skyboxImageIndex = 0;
-var skyboxImage = ["space", "mountain", "water", "lava", "mars", "temp1", "temp2"];
+var skyboxImage = ["space", "water", "lava", "sunny1", "sunny2"];
 var levelIndex = 0;
 var level = ["EASY", "NORMAL", "HARD"];
 
@@ -113,13 +113,13 @@ window.onload = function init() {
 
     mapLeftBtn.addEventListener("click", function () {
         skyboxImageIndex += 6;
-        skyboxImageIndex = skyboxImageIndex % 7;
+        skyboxImageIndex = skyboxImageIndex % 5;
         mapContent.textContent = skyboxImage[skyboxImageIndex];
         switchSkyBox(skyboxImage[skyboxImageIndex]);
     });
     mapRightBtn.addEventListener("click", function () {
         skyboxImageIndex += 1;
-        skyboxImageIndex = skyboxImageIndex % 7;
+        skyboxImageIndex = skyboxImageIndex % 5;
         mapContent.textContent = skyboxImage[skyboxImageIndex];
         switchSkyBox(skyboxImage[skyboxImageIndex]);
     });
@@ -193,7 +193,7 @@ window.onload = function init() {
     function createPathStrings(filename) {
         const basePath = `./background/${filename}/`;
         const baseFilename = basePath + filename;
-        const fileType = filename == "space" ? ".png" : filename == "temp2" ? ".bmp" : ".jpg";
+        const fileType = filename == "space" ? ".png" : filename == "sunny2" ? ".bmp" : ".jpg";
         const sides = ["ft", "bk", "up", "dn", "rt", "lf"];
         const pathStings = sides.map((side) => {
             return baseFilename + "_" + side + fileType;
