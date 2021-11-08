@@ -299,7 +299,7 @@ function gameStart(level) {
     var deletingTime = [];
     var worldObject;
     worldObject = new THREE.Group();
-    var time = 5.0;
+    var time = 60.0;
 
     var score = 0; //점수
     var totalHits = 0; //전체 타격수
