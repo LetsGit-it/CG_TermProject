@@ -1,20 +1,12 @@
 //이게 1인칭 시점 코드인데, 솔직히 이해는 완벽히는 못함.
 THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, speed = 200.0, jumpHeight = 350.0, height = 20.0) {
-    var scope = this; //사람
-    // Models index
+    var scope = this;
 
     scope.MouseMoveSensitivity = MouseMoveSensitivity;
     scope.speed = speed;
     scope.height = height;
     scope.jumpHeight = scope.height + jumpHeight;
     scope.click = false;
-
-    var moveForward = false;
-    var moveBackward = false;
-    var moveLeft = false;
-    var moveRight = false;
-    var canJump = false;
-    var run = false;
 
     var velocity = new THREE.Vector3();
     var direction = new THREE.Vector3();
@@ -87,15 +79,7 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
 
-        direction.z = Number(moveForward) - Number(moveBackward);
-        direction.x = Number(moveRight) - Number(moveLeft);
         direction.normalize();
-
-        var currentSpeed = scope.speed;
-        if (run && (moveForward || moveBackward || moveLeft || moveRight)) currentSpeed = currentSpeed + currentSpeed * 1.1;
-
-        if (moveForward || moveBackward) velocity.z -= direction.z * currentSpeed * delta;
-        if (moveLeft || moveRight) velocity.x -= direction.x * currentSpeed * delta;
 
         scope.getObject().translateX(-velocity.x * delta);
         scope.getObject().translateZ(velocity.z * delta);
@@ -106,21 +90,15 @@ THREE.FirstPersonControls = function (camera, MouseMoveSensitivity = 0.002, spee
         if (scope.getObject().position.y < scope.height) {
             velocity.y = 0;
             scope.getObject().position.y = scope.height;
-
-            canJump = true;
         }
         prevTime = time; //현재 시간 저장
     };
 };
 
+//여기부터 물체 생성 및 맵 관련 코드들////////////////////
 let instructions;
 let clickCnt = 0;
-//여기부터 물체 생성 및 맵 관련 코드들////////////////////
 var raycaster, arrow, world, gun, clock;
-// var camera, scene, renderer, controls;
-var boxes = [];
-// game();
-// gamePageAnimate();
 
 var pause = true;
 var gameStarted = false;
@@ -129,21 +107,27 @@ clock = new THREE.Clock();
 
 //프로그램 처음 시작될 때
 function gameStart(level) {
+    //마우스 감도 설정창 띄우기
     mouseGui();
-    timerObject = document.getElementById("timer"); //시간 표시
+
+    // 시간 & 점수 표시
+    timerObject = document.getElementById("timer");
     timerObject.style.display = "block";
 
-    scoreObject = document.getElementById("score"); //점수 표시
+    scoreObject = document.getElementById("score");
     scoreObject.style.display = "block";
 
-    validHitsObject = document.getElementById("validHitsPer"); //점수 표시
+    validHitsObject = document.getElementById("validHitsPer");
     validHitsObject.style.display = "block";
 
     //마우스로 1인칭 고정하기, 이해는 잘못함...
     instructions = document.getElementById("instructions");
     isFinish = false;
-    //console.log(instructions);
+
+    // 웹 브라우저마다 지원되는 PointerLock이 다릅니다. 어떤 브라우저인지 알아내어서 해당 브라우저의 PointerLock API를 사용 합니다.
     var havePointerLock = "pointerLockElement" in document || "mozPointerLockElement" in document || "webkitPointerLockElement" in document;
+
+    // PointerLock이 지원되는 브라우저가 맞다면, PointerLock 이벤트의 변화가 있을 경우 사용할 함수를 선언해 줍니다. 이는 나중에 eventlistener에 추가 됩니다.
     if (havePointerLock) {
         var element = document.body;
         var pointerlockchange = function (event) {
@@ -170,10 +154,12 @@ function gameStart(level) {
                 }
             }
         };
+        // PointerLock에서 error가 발생할 경우의 함수를 작성해 줍니다. 이는 나중에 eventlistener에 추가 됩니다.
         var pointerlockerror = function (event) {
             instructions.style.display = "none";
         };
 
+        // 위에서 선언한 pointerlockchange 함수와 pointerlockerror 함수를 addEventListener를 통해 이벤트를 받을 수 있도록 합니다.
         document.addEventListener("pointerlockchange", pointerlockchange, false);
         document.addEventListener("mozpointerlockchange", pointerlockchange, false);
         document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
@@ -184,22 +170,9 @@ function gameStart(level) {
         instructions.addEventListener(
             "click",
             function (event) {
+                // 브라우저마다 지원되는 requestPointerLock이 다르기 때문에 || 연산자를 통해 맞는 브라우저의 requestPointerLock을 얻어 옵니다.
                 element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
-                if (/Firefox/i.test(navigator.userAgent)) {
-                    var fullscreenchange = function (event) {
-                        if (document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element) {
-                            document.removeEventListener("fullscreenchange", fullscreenchange);
-                            document.removeEventListener("mozfullscreenchange", fullscreenchange);
-                            element.requestPointerLock();
-                        }
-                    };
-                    document.addEventListener("fullscreenchange", fullscreenchange, false);
-                    document.addEventListener("mozfullscreenchange", fullscreenchange, false);
-                    element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
-                    element.requestFullscreen();
-                } else {
-                    element.requestPointerLock();
-                }
+                element.requestPointerLock();
             },
             false
         );
@@ -216,25 +189,6 @@ function gameStart(level) {
     //광선 투사 및 에임 생성 -> 이걸로 총 맞춤
     raycaster = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
     arrow = new THREE.ArrowHelper(camera.getWorldDirection(new THREE.Vector3()), camera.getWorldPosition(new THREE.Vector3()), 3, 0x000000);
-
-    //화면 생성
-    // scene = new THREE.Scene();
-    // scene.background = new THREE.Color(0xffffff);
-    //화면 안개 생성
-    // scene.fog = new THREE.Fog(0xffffff, 0, 2000);
-    // scene.fog = new THREE.FogExp2 (0xffffff, 0.007);
-
-    //랜더링 함수 생성
-    // renderer = new THREE.WebGLRenderer({ antialias: true });
-    // renderer.setPixelRatio(window.devicePixelRatio);
-    // renderer.setSize(window.innerWidth, window.innerHeight);
-    // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    // renderer.shadowMap.enabled = true;
-    // document.body.appendChild(renderer.domElement);
-    // renderer.outputEncoding = THREE.sRGBEncoding;
-
-    //화면 크기 맞춤 설정
-    // window.addEventListener("resize", onWindowResize, false);
 
     //라이트 설정
     var light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
@@ -256,8 +210,6 @@ function gameStart(level) {
     controls = new THREE.FirstPersonControls(camera);
     scene.add(controls.getObject());
 
-    //object
-
     // Model/material loading! MTL Loader 부분 함수, 총을 mtl loader로 불러왔어요
     var mtlLoader = new THREE.MTLLoader();
     mtlLoader.load("models/uziGold.mtl", function (materials) {
@@ -275,14 +227,13 @@ function gameStart(level) {
             });
 
             scene.add(gun);
-            gun.scale.set(100, 100, 100);
-            // gun.position.set(controls.getObject().position.x-5,controls.getObject().position.y,controls.getObject().position.z+5);
+            gun.scale.set(120, 120, 120);
+            // gun.position.set(controls.getObject().position.x-5,controls.getObject().position.y+20,controls.getObject().position.z+5);
             gun.rotation.y;
         });
     });
 
     //물체 생성
-
     //구체 반지름
     var sphereRadius;
     //정육면체 너비
@@ -392,24 +343,9 @@ function gameStart(level) {
                                 console.log("Delete Success");
                             }
                         }
-
-                        // // 총알 튀는거 표시
-
-                        // //파편 튀는거 표시
-                        // if (particles.length > 0) {
-                        //   makeParticles(intersects.material.position)
-                        //   var pLength = particles.length;
-                        //   while (pLength--) {
-                        //     particles[pLength].prototype.update(pLength);
-                        //   }
-                        // }
                         controls.click = false;
                     }
 
-                    //console.log(deletingTime.length);
-                    //console.log(deletingTime);
-                    //console.log(objects);
-                    //console.log(worldObject);
                     for (var i = 0; i < deletingTime.length; i++) {
                         if (deletingTime[i] >= time) {
                             deleteObj = objects[i];
@@ -619,29 +555,6 @@ function gameStart(level) {
         worldObject.add(bomb);
     }
 
-    /*//이제 네모난 박스를 랜덤으로 생성하는 코드들
-    var boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
-
-    boxGeometry.translate(0, 0.5, 0);
-
-    for (var i = 0; i < 500; i++) {
-        var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, flatShading: false, vertexColors: false });
-
-        var mesh = new THREE.Mesh(boxGeometry, boxMaterial);
-        mesh.position.x = Math.random() * 1000 - Math.random() * 1000;
-        mesh.position.y = Math.random() * 20;
-        mesh.position.z = Math.random() * 1000 - Math.random() * 1000;
-        mesh.scale.x = 5;
-        mesh.scale.y = 5;
-        mesh.scale.z = 5;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.updateMatrix();
-        mesh.matrixAutoUpdate = false;
-        boxes.push(mesh);
-        world.add(mesh);
-    }*/
-
     scene.add(worldObject);
 
     gamePageAnimate();
@@ -666,11 +579,11 @@ function gamePageAnimate() {
         scene.remove(arrow);
         arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 3, 0xffffff, 0.5, 0.05);
         scene.add(arrow);
-        // position the gun in front of the camera
 
+        // position the gun in front of the camera
         gun.position.set(
             controls.getObject().position.x - Math.sin(controls.getObject().rotation.y) * 7,
-            controls.getObject().position.y - 6,
+            controls.getObject().position.y - 4,
             controls.getObject().position.z - 1 - Math.cos(controls.getObject().rotation.y) * 7
         );
         gun.rotation.set(controls.getObject().rotation.x, controls.getObject().rotation.y + 3.2, controls.getObject2().rotation.z * 10);
@@ -679,113 +592,6 @@ function gamePageAnimate() {
 
         renderer.render(scene, camera);
     }
-}
-
-//총알 파편튀는 코드인데 일단 제외했음
-var particles = new Array();
-
-//파편 튀는 함수
-function makeParticles(intersectPosition) {
-    var totalParticles = 80;
-
-    var pointsGeometry = new THREE.BufferGeometry();
-    pointsGeometry.oldvertices = []; //파편 포인트
-    pointsGeometry.vertices = [];
-    var colors = [];
-    for (var i = 0; i < totalParticles; i++) {
-        var position = randomPosition(Math.random());
-        var vertex = new THREE.Vector3(position[0], position[1], position[2]);
-        pointsGeometry.oldvertices.push([0, 0, 0]);
-        pointsGeometry.vertices.push(vertex);
-
-        var color = new THREE.Color(Math.random() * 0xffffff);
-        colors.push(color);
-    }
-    pointsGeometry.colors = colors;
-
-    var pointsMaterial = new THREE.PointsMaterial({
-        size: 0.8,
-        sizeAttenuation: true,
-        depthWrite: true,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        vertexColors: THREE.VertexColors,
-    });
-
-    var points = new THREE.Points(pointsGeometry, pointsMaterial);
-
-    points.prototype = Object.create(THREE.Points.prototype);
-    points.position.x = intersectPosition.x;
-    points.position.y = intersectPosition.y;
-    points.position.z = intersectPosition.z;
-    points.updateMatrix();
-    points.matrixAutoUpdate = false;
-
-    points.prototype.constructor = points;
-    points.prototype.update = function (index) {
-        var pCount = this.constructor.geometry.vertices.length;
-        var positionYSum = 0;
-        while (pCount--) {
-            var position = this.constructor.geometry.vertices[pCount];
-            var oldPosition = this.constructor.geometry.oldvertices[pCount];
-
-            var velocity = {
-                x: position.x - oldPosition[0],
-                y: position.y - oldPosition[1],
-                z: position.z - oldPosition[2],
-            };
-
-            var oldPositionX = position.x;
-            var oldPositionY = position.y;
-            var oldPositionZ = position.z;
-
-            position.y -= 0.03; // gravity
-
-            position.x += velocity.x;
-            position.y += velocity.y;
-            position.z += velocity.z;
-
-            var wordlPosition = this.constructor.position.y + position.y;
-
-            if (wordlPosition <= 0) {
-                //particle touched the ground
-                oldPositionY = position.y;
-                position.y = oldPositionY - velocity.y * 0.3;
-
-                positionYSum += 1;
-            }
-
-            this.constructor.geometry.oldvertices[pCount] = [oldPositionX, oldPositionY, oldPositionZ];
-        }
-
-        pointsGeometry.verticesNeedUpdate = true;
-
-        if (positionYSum >= totalParticles) {
-            particles.splice(index, 1);
-            scene.remove(this.constructor);
-            //console.log("particle removed");
-        }
-    };
-    particles.push(points);
-    scene.add(points);
-}
-
-//랜덤으로 xyz 설정하는 함수
-
-function randomPosition(radius) {
-    radius = radius * Math.random();
-    var theta = Math.random() * 2.0 * Math.PI;
-    var phi = Math.random() * Math.PI;
-
-    var sinTheta = Math.sin(theta);
-    var cosTheta = Math.cos(theta);
-    var sinPhi = Math.sin(phi);
-    var cosPhi = Math.cos(phi);
-    var x = radius * sinPhi * cosTheta;
-    var y = radius * sinPhi * sinTheta;
-    var z = radius * cosPhi;
-
-    return [x, y, z];
 }
 
 //GUI 부분, 옆에 마우스 감도랑 사람 키, 점프 속도 설정하는 부분
