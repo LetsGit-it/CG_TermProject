@@ -1,4 +1,5 @@
 # CG_TermProject
-Computer Graphics Term Project
+2021 Computer Graphics Term Project
 
-이상원, 전탁, 조민정, 최우석
+Team members: 이상원, 전탁, 조민정, 최우석
+Title: Aim Trainer 3D Game
